@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: BUMP
+  config:
+    import: optional:classpath:application-local.yaml
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bump
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true

@@ -1,0 +1,6 @@
+# Copy this file to application-local.yaml and fill in your local values.
+# application-local.yaml is gitignored and will never be committed.
+spring:
+  datasource:
+    username: postgres
+    password: your-password-here
