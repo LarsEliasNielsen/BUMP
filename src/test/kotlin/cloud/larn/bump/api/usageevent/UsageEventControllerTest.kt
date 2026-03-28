@@ -3,7 +3,6 @@ package cloud.larn.bump.api.usageevent
 import cloud.larn.bump.application.usageevent.UsageEventService
 import cloud.larn.bump.domain.usageevent.UsageEvent
 import cloud.larn.bump.infrastructure.SecurityConfig
-import tools.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.given
@@ -23,9 +22,6 @@ class UsageEventControllerTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
 
     @MockitoBean
     private lateinit var service: UsageEventService
@@ -47,14 +43,7 @@ class UsageEventControllerTest {
 
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                CreateUsageEventRequest(
-                    userId = "user-123",
-                    service = "compute",
-                    product = "vm",
-                    eventDateTime = eventDateTime,
-                )
-            )
+            content = """{"userId":"user-123","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z"}"""
         }.andExpect {
             status { isCreated() }
             jsonPath("$.id") { value(id.toString()) }
