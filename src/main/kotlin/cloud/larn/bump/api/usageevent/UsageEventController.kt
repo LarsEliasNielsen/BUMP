@@ -1,6 +1,7 @@
 package cloud.larn.bump.api.usageevent
 
 import cloud.larn.bump.application.usageevent.UsageEventService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -14,7 +15,7 @@ class UsageEventController(private val service: UsageEventService) {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@RequestBody request: CreateUsageEventRequest): UsageEventResponse {
+    fun create(@Valid @RequestBody request: CreateUsageEventRequest): UsageEventResponse {
         val saved = service.create(
             userId = request.userId,
             service = request.service,
