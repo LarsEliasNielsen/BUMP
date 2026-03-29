@@ -1,5 +1,6 @@
 package cloud.larn.bump.infrastructure.persistence
 
+import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.UsageEvent
 import cloud.larn.bump.domain.repository.UsageEventRepository
 import org.springframework.stereotype.Repository
@@ -18,7 +19,7 @@ class UsageEventRepositoryAdapter(
 
     private fun UsageEvent.toEntity() = UsageEventEntity(
         id = id,
-        userId = userId,
+        userId = customerId.value,
         service = service,
         product = product,
         eventDateTime = eventDateTime,
@@ -26,7 +27,7 @@ class UsageEventRepositoryAdapter(
 
     private fun UsageEventEntity.toDomain() = UsageEvent(
         id = id,
-        userId = userId,
+        customerId = CustomerId(userId),
         service = service,
         product = product,
         eventDateTime = eventDateTime,

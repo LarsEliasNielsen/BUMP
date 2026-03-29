@@ -12,17 +12,17 @@ import java.util.UUID
 class UsageEventEntity(
     @Id
     @Column(name = "id", updatable = false, nullable = false)
-    val id: UUID,
+    var id: UUID,
 
     @Column(name = "user_id", nullable = false)
-    val userId: String,
+    var userId: String,
 
     @Column(name = "service", nullable = false)
-    val service: String,
+    var service: String,
 
     @Column(name = "product", nullable = false)
-    val product: String,
+    var product: String,
 
     @Column(name = "event_date_time", nullable = false)
-    val eventDateTime: OffsetDateTime,
+    var eventDateTime: OffsetDateTime,
 )

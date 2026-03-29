@@ -9,7 +9,7 @@ import java.util.UUID
 @Serializable
 data class UsageEventResponse(
     @Serializable(with = UUIDSerializer::class) val id: UUID,
-    val userId: String,
+    val customerId: String,
     val service: String,
     val product: String,
     @Serializable(with = OffsetDateTimeSerializer::class) val eventDateTime: OffsetDateTime,

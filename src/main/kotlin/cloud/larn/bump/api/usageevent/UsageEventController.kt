@@ -17,14 +17,14 @@ class UsageEventController(private val service: UsageEventService) {
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody request: CreateUsageEventRequest): UsageEventResponse {
         val saved = service.create(
-            userId = request.userId,
+            customerId = request.customerId,
             service = request.service,
             product = request.product,
             eventDateTime = request.eventDateTime,
         )
         return UsageEventResponse(
             id = saved.id,
-            userId = saved.userId,
+            customerId = saved.customerId.value,
             service = saved.service,
             product = saved.product,
             eventDateTime = saved.eventDateTime,
