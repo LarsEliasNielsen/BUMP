@@ -106,7 +106,63 @@ These guidelines apply to all code written in this project. They are not suggest
 
 ---
 
-### 1. Philosophy
+### 1. Architecture
+
+This project applies **Hexagonal Architecture** (Alistair Cockburn, 2005), also known as **Ports & Adapters**, as codified in **Clean Architecture** (Robert C. Martin, 2017).
+
+The central idea is the **Dependency Rule**: source code dependencies must always point *inward*. The domain sits at the center and knows nothing about the outside world. Infrastructure, frameworks, and delivery mechanisms (HTTP, queues, databases) are details — they live on the outside and depend on the domain, never the reverse.
+
+```
+                        ┌─────────────────────────────┐
+                        │         Infrastructure       │
+                        │  ┌───────────────────────┐  │
+                        │  │      Application       │  │
+                        │  │  ┌─────────────────┐  │  │
+                        │  │  │     Domain      │  │  │
+                        │  │  │  (no deps)      │  │  │
+                        │  │  └─────────────────┘  │  │
+                        │  └───────────────────────┘  │
+                        └─────────────────────────────┘
+          HTTP / Queue ──►  Controller / Consumer  ──►  Use Case  ──►  Domain
+          Database      ◄──  JPA Adapter          ◄──  Port (interface)
+```
+
+#### Ports
+Ports are **interfaces defined by the domain or application layer** that describe what the outside world must provide. They express a need without caring how it is fulfilled.
+
+- `UsageEventRepository` — port for persistence. The domain defines it; infrastructure implements it.
+- `DomainEventPublisher` — port for event publishing. The application layer defines it; infrastructure wires it to Spring or SQS.
+
+#### Adapters
+Adapters are **infrastructure implementations of ports**. They translate between the domain model and external concerns (SQL, JSON, HTTP, message queues).
+
+- `UsageEventRepositoryAdapter` — implements `UsageEventRepository` using JPA.
+- `UsageEventController` — translates HTTP requests into application commands and back.
+
+#### Package Structure as the Hexagon
+
+```
+cloud.larn.bump
+├── domain/             # Center of the hexagon. Zero framework dependencies.
+│   ├── model/          # Aggregates, Entities, Value Objects
+│   ├── event/          # Domain events (facts that happened)
+│   └── repository/     # Port interfaces (what persistence must provide)
+├── application/        # Orchestration layer. Depends on domain only.
+│   └── usecase/        # One class per use case (Clean Architecture Interactors)
+├── infrastructure/     # Adapters: implement ports, integrate frameworks.
+│   ├── persistence/    # JPA entities, Spring Data repos, repository adapters
+│   └── messaging/      # Event publisher adapter (Spring events → SQS/Kafka)
+└── api/                # HTTP adapter: controllers, request/response models
+```
+
+#### Why This Matters for BUMP
+- The domain can be **unit tested without Spring, JPA, or a database**.
+- The persistence layer can be **swapped** (e.g., PostgreSQL → DynamoDB) by writing a new adapter without touching a single domain or application class.
+- The event backbone can be **evolved** from Spring internal events (Phase 1) to AWS SQS (Phase 2) by replacing only the `DomainEventPublisher` adapter.
+
+---
+
+### 2. Philosophy
 
 - **Explicit over implicit.** If something is not obvious from the types and names, it should be made explicit—through naming, type signatures, or a short comment explaining *why*, not *what*.
 - **Simple over clever.** A straightforward solution that is easy to read is always preferable to a clever one that is hard to reason about.
@@ -116,35 +172,13 @@ These guidelines apply to all code written in this project. They are not suggest
 
 ---
 
-### 2. Domain-Driven Design (DDD)
+### 3. Domain-Driven Design (DDD)
 
 The domain is the heart of this system. Every technical decision must serve the domain model.
 
 #### Ubiquitous Language
 - Use domain terms consistently in code, tests, API contracts, and documentation. `UsageEvent`, `BillingPeriod`, `Invoice`, `Tenant`, `PricingTier` are domain concepts—not implementation details.
 - Never leak infrastructure names into the domain. A `UsageEvent` is not a `UsageEventEntity` or `UsageEventDto` in the domain layer.
-
-#### Layered Architecture
-Enforce strict dependency direction: **Domain ← Application ← Infrastructure / API**
-
-```
-com.bump
-├── domain          # Pure business logic. No Spring, no JPA, no HTTP.
-│   ├── model       # Aggregates, Entities, Value Objects
-│   ├── event       # Domain events
-│   ├── repository  # Interfaces only (ports)
-│   └── service     # Domain services (stateless logic that spans aggregates)
-├── application     # Use cases / orchestration. Depends on domain only.
-│   └── usecase
-├── infrastructure  # Adapters: persistence, messaging, external APIs
-│   ├── persistence
-│   └── messaging
-└── api             # HTTP controllers, request/response models
-```
-
-- **Domain layer has zero framework dependencies.** No `@Entity`, no `@Component`, no Spring imports.
-- **Application layer coordinates.** It calls domain services and repositories. It publishes domain events. It does not contain business logic.
-- **Infrastructure implements ports.** A `JpaUsageEventRepository` implements `UsageEventRepository` (domain interface). The domain never knows about JPA.
 
 #### Aggregates and Value Objects
 - Model money as a **Value Object**, never a primitive. Use `BigDecimal` with explicit currency.
@@ -167,7 +201,7 @@ data class Money(val amount: BigDecimal, val currency: Currency) {
 
 ---
 
-### 3. Event-Driven Design
+### 4. Event-Driven Design
 
 Events are facts. They record something that *has happened*, expressed in past tense.
 
@@ -199,7 +233,7 @@ data class UsageRecorded(
 
 ---
 
-### 4. Extensibility & Design Patterns
+### 5. Extensibility & Design Patterns
 
 Good architecture makes the right things easy and the wrong things hard.
 
@@ -251,7 +285,7 @@ Side effects (sending notifications, updating read models) must not live inside 
 
 ---
 
-### 5. Kotlin Style
+### 6. Kotlin Style
 
 Follow the [official Kotlin coding conventions](https://kotlinlang.org/docs/coding-conventions.html). Highlights specific to this project:
 
@@ -295,7 +329,7 @@ sealed class UsageRecordResult {
 
 ---
 
-### 6. Testing
+### 7. Testing
 
 - **Test behavior, not implementation.** Tests verify that the system does the right thing, not how it does it.
 - **Unit test the domain.** Domain logic has no dependencies—tests need no framework, no mocks, no Spring context. They should be fast and numerous.
@@ -306,7 +340,7 @@ sealed class UsageRecordResult {
 
 ---
 
-### 7. Architecture Invariants (Hard Rules)
+### 8. Architecture Invariants (Hard Rules)
 
 These rules must not be violated without explicit discussion:
 
