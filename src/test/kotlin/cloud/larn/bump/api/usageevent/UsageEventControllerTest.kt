@@ -60,6 +60,7 @@ class UsageEventControllerTest {
             content = """{"userId":"","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z"}"""
         }.andExpect {
             status { isBadRequest() }
+            jsonPath("$.error") { value("Request is not valid") }
         }
     }
 
@@ -70,6 +71,7 @@ class UsageEventControllerTest {
             content = """{"userId":"user-123","service":"","product":"vm","eventDateTime":"2026-01-15T10:00:00Z"}"""
         }.andExpect {
             status { isBadRequest() }
+            jsonPath("$.error") { value("Request is not valid") }
         }
     }
 
@@ -80,6 +82,18 @@ class UsageEventControllerTest {
             content = """{"userId":"user-123","service":"compute","product":"","eventDateTime":"2026-01-15T10:00:00Z"}"""
         }.andExpect {
             status { isBadRequest() }
+            jsonPath("$.error") { value("Request is not valid") }
+        }
+    }
+
+    @Test
+    fun `POST usage-events returns 400 when service is missing`() {
+        mockMvc.post("/usage-events") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"userId":"user-123","product":"vm","eventDateTime":"2026-01-15T10:00:00Z"}"""
+        }.andExpect {
+            status { isBadRequest() }
+            jsonPath("$.error") { value("Request is not valid") }
         }
     }
 
@@ -90,6 +104,18 @@ class UsageEventControllerTest {
             content = """{"userId":"user-123","service":"compute","product":"vm"}"""
         }.andExpect {
             status { isBadRequest() }
+            jsonPath("$.error") { value("Request is not valid") }
+        }
+    }
+
+    @Test
+    fun `POST usage-events returns 400 when eventDateTime has invalid format`() {
+        mockMvc.post("/usage-events") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"userId":"user-123","service":"compute","product":"vm","eventDateTime":"not-a-date"}"""
+        }.andExpect {
+            status { isBadRequest() }
+            jsonPath("$.error") { value("Request is not valid") }
         }
     }
 }
