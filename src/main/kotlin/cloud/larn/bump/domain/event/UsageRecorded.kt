@@ -13,4 +13,4 @@ data class UsageRecorded(
     val product: String,
     val idempotencyKey: IdempotencyKey,
     val occurredAt: Instant,
-)
+) : DomainEvent

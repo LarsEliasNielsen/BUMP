@@ -189,7 +189,7 @@ The domain is the heart of this system. Every technical decision must serve the 
 
 ```kotlin
 // Prefer this:
-@JvmInline value class CustomerId(val value: UUID)
+@JvmInline value class CustomerId(val value: String) // backing type to be revisited when Customer aggregate is introduced in Epic 2
 @JvmInline value class IdempotencyKey(val value: String)
 
 data class Money(val amount: BigDecimal, val currency: Currency) {
