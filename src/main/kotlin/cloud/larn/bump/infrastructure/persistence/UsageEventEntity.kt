@@ -25,4 +25,7 @@ class UsageEventEntity(
 
     @Column(name = "event_date_time", nullable = false)
     var eventDateTime: OffsetDateTime,
+
+    @Column(name = "idempotency_key", nullable = false, unique = true, updatable = false)
+    var idempotencyKey: String,
 )

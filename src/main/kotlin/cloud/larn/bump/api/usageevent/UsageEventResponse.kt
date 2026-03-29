@@ -13,4 +13,5 @@ data class UsageEventResponse(
     val service: String,
     val product: String,
     @Serializable(with = OffsetDateTimeSerializer::class) val eventDateTime: OffsetDateTime,
+    val idempotencyKey: String,
 )

@@ -12,4 +12,5 @@ data class CreateUsageEventRequest(
     @field:NotBlank val service: String,
     @field:NotBlank val product: String,
     @field:NotNull @Serializable(with = OffsetDateTimeSerializer::class) val eventDateTime: OffsetDateTime,
+    @field:NotBlank val idempotencyKey: String,
 )

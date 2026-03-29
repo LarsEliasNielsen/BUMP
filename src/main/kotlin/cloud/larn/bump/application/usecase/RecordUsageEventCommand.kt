@@ -1,10 +1,10 @@
-package cloud.larn.bump.domain.model
+package cloud.larn.bump.application.usecase
 
+import cloud.larn.bump.domain.model.CustomerId
+import cloud.larn.bump.domain.model.IdempotencyKey
 import java.time.OffsetDateTime
-import java.util.UUID
 
-data class UsageEvent(
-    val id: UUID = UUID.randomUUID(),
+data class RecordUsageEventCommand(
     val customerId: CustomerId,
     val service: String,
     val product: String,
