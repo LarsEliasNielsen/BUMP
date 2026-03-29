@@ -1,7 +1,7 @@
 package cloud.larn.bump.api.usageevent
 
 import cloud.larn.bump.application.usageevent.UsageEventService
-import cloud.larn.bump.domain.usageevent.UsageEvent
+import cloud.larn.bump.domain.model.UsageEvent
 import cloud.larn.bump.infrastructure.SecurityConfig
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

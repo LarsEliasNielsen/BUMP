@@ -23,7 +23,7 @@ class UsageEventController(private val service: UsageEventService) {
             eventDateTime = request.eventDateTime,
         )
         return UsageEventResponse(
-            id = saved.id!!,
+            id = saved.id,
             userId = saved.userId,
             service = saved.service,
             product = saved.product,

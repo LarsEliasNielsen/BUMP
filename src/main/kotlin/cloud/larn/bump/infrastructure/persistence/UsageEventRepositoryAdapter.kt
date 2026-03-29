@@ -1,0 +1,34 @@
+package cloud.larn.bump.infrastructure.persistence
+
+import cloud.larn.bump.domain.model.UsageEvent
+import cloud.larn.bump.domain.repository.UsageEventRepository
+import org.springframework.stereotype.Repository
+import java.util.UUID
+
+@Repository
+class UsageEventRepositoryAdapter(
+    private val jpa: UsageEventJpaRepository,
+) : UsageEventRepository {
+
+    override fun save(event: UsageEvent): UsageEvent =
+        jpa.save(event.toEntity()).toDomain()
+
+    override fun findById(id: UUID): UsageEvent? =
+        jpa.findById(id).orElse(null)?.toDomain()
+
+    private fun UsageEvent.toEntity() = UsageEventEntity(
+        id = id,
+        userId = userId,
+        service = service,
+        product = product,
+        eventDateTime = eventDateTime,
+    )
+
+    private fun UsageEventEntity.toDomain() = UsageEvent(
+        id = id,
+        userId = userId,
+        service = service,
+        product = product,
+        eventDateTime = eventDateTime,
+    )
+}

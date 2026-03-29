@@ -1,9 +1,7 @@
-package cloud.larn.bump.domain.usageevent
+package cloud.larn.bump.infrastructure.persistence
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.OffsetDateTime
@@ -11,11 +9,10 @@ import java.util.UUID
 
 @Entity
 @Table(name = "usage_events")
-class UsageEvent(
+class UsageEventEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
-    val id: UUID? = null,
+    val id: UUID,
 
     @Column(name = "user_id", nullable = false)
     val userId: String,

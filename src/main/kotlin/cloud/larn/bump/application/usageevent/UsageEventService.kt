@@ -1,7 +1,7 @@
 package cloud.larn.bump.application.usageevent
 
-import cloud.larn.bump.domain.usageevent.UsageEvent
-import cloud.larn.bump.domain.usageevent.UsageEventRepository
+import cloud.larn.bump.domain.model.UsageEvent
+import cloud.larn.bump.domain.repository.UsageEventRepository
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 
