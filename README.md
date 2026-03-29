@@ -86,6 +86,7 @@ Flyway migrations are located in `src/main/resources/db/migration/` and run auto
 | Version | Description |
 |---|---|
 | V1 | Create `usage_events` table |
+| V2 | Add `idempotency_key` column to `usage_events` |
 
 ## API Endpoints
 
@@ -96,14 +97,17 @@ Flyway migrations are located in `src/main/resources/db/migration/` and run auto
 
 ### POST /usage-events
 
+Submits a usage event. Requests are idempotent — submitting the same `idempotencyKey` twice returns `409 Conflict` without creating a duplicate.
+
 **Request body:**
 
 ```json
 {
-  "userId": "alice",
+  "customerId": "customer-123",
   "service": "compute",
   "product": "vm-standard",
-  "eventDateTime": "2026-03-28T10:00:00Z"
+  "eventDateTime": "2026-03-28T10:00:00Z",
+  "idempotencyKey": "a4f9b81c-1234-4c8f-9abc-2f3d5e6a7b8c"
 }
 ```
 
@@ -112,9 +116,12 @@ Flyway migrations are located in `src/main/resources/db/migration/` and run auto
 ```json
 {
   "id": "e29b6e3a-1234-4c8f-9abc-2f3d5e6a7b8c",
-  "userId": "alice",
+  "customerId": "customer-123",
   "service": "compute",
   "product": "vm-standard",
-  "eventDateTime": "2026-03-28T10:00:00Z"
+  "eventDateTime": "2026-03-28T10:00:00Z",
+  "idempotencyKey": "a4f9b81c-1234-4c8f-9abc-2f3d5e6a7b8c"
 }
 ```
+
+**Response** `409 Conflict` — returned when the `idempotencyKey` has already been used.

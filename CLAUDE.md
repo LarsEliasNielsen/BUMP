@@ -148,7 +148,8 @@ cloud.larn.bump
 │   ├── event/          # Domain events (facts that happened)
 │   └── repository/     # Port interfaces (what persistence must provide)
 ├── application/        # Orchestration layer. Depends on domain only.
-│   └── usecase/        # One class per use case (Clean Architecture Interactors)
+│   ├── usecase/        # One class per use case (Clean Architecture Interactors)
+│   └── port/           # Output port interfaces (e.g. DomainEventPublisher)
 ├── infrastructure/     # Adapters: implement ports, integrate frameworks.
 │   ├── persistence/    # JPA entities, Spring Data repos, repository adapters
 │   └── messaging/      # Event publisher adapter (Spring events → SQS/Kafka)
@@ -351,3 +352,5 @@ These rules must not be violated without explicit discussion:
 5. **Events are immutable and past tense.** No mutable event fields. No imperative event names (`ProcessUsage` is a command, not an event).
 6. **One use case per class.** Application services are thin orchestrators with a single public method.
 7. **No business logic in controllers.** Controllers translate HTTP to application commands and back. Nothing more.
+8. **Keep `README.md` up to date.** Any change that affects API contracts, migration history, prerequisites, or configuration must be reflected in `README.md` in the same session it is made.
+9. **Run tests after changing tested code.** Any change to a test class or to a component covered by tests must be followed by running `./gradlew test` in the same session. Tests must pass before the session ends.

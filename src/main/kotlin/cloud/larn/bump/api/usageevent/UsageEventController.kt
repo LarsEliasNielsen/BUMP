@@ -5,6 +5,7 @@ import cloud.larn.bump.application.usecase.RecordUsageEventCommand
 import cloud.larn.bump.application.usecase.RecordUsageEventResult
 import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.IdempotencyKey
+import cloud.larn.bump.domain.model.UsageEvent
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,7 +33,7 @@ class UsageEventController(private val useCase: RecordUsageEvent) {
         }
     }
 
-    private fun cloud.larn.bump.domain.model.UsageEvent.toResponse() = UsageEventResponse(
+    private fun UsageEvent.toResponse() = UsageEventResponse(
         id = id,
         customerId = customerId.value,
         service = service,
