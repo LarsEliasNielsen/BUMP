@@ -1,9 +1,11 @@
 package cloud.larn.bump.infrastructure.persistence
 
+import cloud.larn.bump.domain.exception.DuplicateIdempotencyKeyException
 import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.IdempotencyKey
 import cloud.larn.bump.domain.model.UsageEvent
 import cloud.larn.bump.domain.repository.UsageEventRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
@@ -13,7 +15,11 @@ class UsageEventRepositoryAdapter(
 ) : UsageEventRepository {
 
     override fun save(event: UsageEvent): UsageEvent =
-        jpa.save(event.toEntity()).toDomain()
+        try {
+            jpa.save(event.toEntity()).toDomain()
+        } catch (_: DataIntegrityViolationException) {
+            throw DuplicateIdempotencyKeyException(event.idempotencyKey)
+        }
 
     override fun findById(id: UUID): UsageEvent? =
         jpa.findById(id).orElse(null)?.toDomain()

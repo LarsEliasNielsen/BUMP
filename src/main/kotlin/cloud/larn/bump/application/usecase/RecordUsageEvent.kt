@@ -2,6 +2,7 @@ package cloud.larn.bump.application.usecase
 
 import cloud.larn.bump.application.port.DomainEventPublisher
 import cloud.larn.bump.domain.event.UsageRecorded
+import cloud.larn.bump.domain.exception.DuplicateIdempotencyKeyException
 import cloud.larn.bump.domain.model.UsageEvent
 import cloud.larn.bump.domain.repository.UsageEventRepository
 import org.springframework.stereotype.Service
@@ -17,15 +18,19 @@ class RecordUsageEvent(
             return RecordUsageEventResult.Duplicate
         }
 
-        val event = repository.save(
-            UsageEvent(
-                customerId = command.customerId,
-                service = command.service,
-                product = command.product,
-                eventDateTime = command.eventDateTime,
-                idempotencyKey = command.idempotencyKey,
+        val event = try {
+            repository.save(
+                UsageEvent(
+                    customerId = command.customerId,
+                    service = command.service,
+                    product = command.product,
+                    eventDateTime = command.eventDateTime,
+                    idempotencyKey = command.idempotencyKey,
+                )
             )
-        )
+        } catch (_: DuplicateIdempotencyKeyException) {
+            return RecordUsageEventResult.Duplicate
+        }
 
         eventPublisher.publish(
             UsageRecorded(

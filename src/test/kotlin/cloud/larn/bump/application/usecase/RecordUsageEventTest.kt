@@ -2,6 +2,7 @@ package cloud.larn.bump.application.usecase
 
 import cloud.larn.bump.application.port.DomainEventPublisher
 import cloud.larn.bump.domain.event.UsageRecorded
+import cloud.larn.bump.domain.exception.DuplicateIdempotencyKeyException
 import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.IdempotencyKey
 import cloud.larn.bump.domain.model.UsageEvent
@@ -85,6 +86,17 @@ class RecordUsageEventTest {
 
         assertIs<RecordUsageEventResult.Duplicate>(result)
         verify(repository, never()).save(any())
+        verify(eventPublisher, never()).publish(any())
+    }
+
+    @Test
+    fun `should return Duplicate and not publish when concurrent save is rejected by database`() {
+        given(repository.existsByIdempotencyKey(command.idempotencyKey)).willReturn(false)
+        given(repository.save(any())).willThrow(DuplicateIdempotencyKeyException(command.idempotencyKey))
+
+        val result = useCase.execute(command)
+
+        assertIs<RecordUsageEventResult.Duplicate>(result)
         verify(eventPublisher, never()).publish(any())
     }
 }
