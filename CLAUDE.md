@@ -251,18 +251,18 @@ interface PricingStrategy {
     fun calculate(usage: AggregatedUsage, config: PricingConfig): Money
 }
 
-class TieredPricingStrategy : PricingStrategy { ... }
-class VolumePricingStrategy : PricingStrategy { ... }
-class FlatRatePricingStrategy : PricingStrategy { ... }
+class TieredPricingStrategy : PricingStrategy { /* ... */ }
+class VolumePricingStrategy : PricingStrategy { /* ... */ }
+class FlatRatePricingStrategy : PricingStrategy { /* ... */ }
 ```
 
 #### Factory Pattern — Aggregate Construction
 Use factory methods or companion object factories for aggregates with complex construction logic. This keeps constructors simple and invalid states impossible.
 
 ```kotlin
-data class Invoice private constructor(...) {
+data class Invoice private constructor(/* ... */) {
     companion object {
-        fun generate(period: BillingPeriod, usage: AggregatedUsage, pricing: Money): Invoice { ... }
+        fun generate(period: BillingPeriod, usage: AggregatedUsage, pricing: Money): Invoice { /* ... */ }
     }
 }
 ```
@@ -278,7 +278,7 @@ fun aUsageEvent(
     customerId: CustomerId = CustomerId(UUID.randomUUID()),
     metric: UsageMetric = UsageMetric.API_CALL,
     quantity: Long = 1L
-) = UsageEvent(customerId = customerId, metric = metric, quantity = quantity, ...)
+) = UsageEvent(customerId = customerId, metric = metric, quantity = quantity, /* ... */)
 ```
 
 #### Observer / Event Pattern — Decoupled Reactions
