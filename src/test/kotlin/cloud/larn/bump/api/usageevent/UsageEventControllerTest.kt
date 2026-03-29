@@ -69,6 +69,7 @@ class UsageEventControllerTest {
             content = """{"customerId":"customer-123","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"duplicate-key"}"""
         }.andExpect {
             status { isConflict() }
+            jsonPath("$.error") { value("Usage event with this idempotency key already exists") }
         }
     }
 
