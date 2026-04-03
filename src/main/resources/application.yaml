@@ -14,3 +14,12 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: false   # Disabled in production; Enable in application-local.yaml for local development
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    enabled: false   # Disabled in production; Enable in application-local.yaml for local development

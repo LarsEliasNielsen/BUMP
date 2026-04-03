@@ -372,7 +372,73 @@ Place JPA mapping annotations on fields, not on property getters. Field access i
 
 ---
 
-### 9. Architecture Invariants (Hard Rules)
+### 9. OpenAPI Documentation
+
+Every HTTP endpoint must be fully documented with OpenAPI 3 annotations. Documentation is not optional—treat it as part of the definition of done for any endpoint.
+
+#### Controller annotations
+
+```kotlin
+@Tag(name = "Usage Events", description = "Idempotent ingestion of raw usage events")
+@RestController
+class UsageEventController {
+
+    @Operation(
+        summary = "Short title shown in the Swagger UI endpoint list",
+        description = "Longer explanation including idempotency behaviour, side effects, and error conditions.")
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "201",
+            description = "...",
+            content = [Content(schema = Schema(implementation = UsageEventResponse::class))]),
+        ApiResponse(
+            responseCode = "400",
+            description = "...",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+        ApiResponse(
+            responseCode = "409",
+            description = "...",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+    )
+    @PostMapping
+    fun create(/* ... */): ResponseEntity<UsageEventResponse>
+}
+```
+
+- `@Tag` goes on the **class** and groups endpoints in the Swagger UI.
+- `@Operation` goes on each **handler method**. Always fill in both `summary` (one line) and `description` (full contract, including error cases).
+- `@ApiResponse` must be listed for **every status code** the endpoint can return, including 4xx. Include the `content`/`schema` so Swagger renders the response body shape.
+
+#### Request and response class annotations
+
+Since this project uses **kotlinx-serialization** instead of Jackson, springdoc cannot auto-detect schemas from property types. Every field on every request and response class must carry `@Schema`:
+
+```kotlin
+@Schema(description = "Request body for recording a usage event")
+data class CreateUsageEventRequest(
+    @Schema(
+       description = "Unique identifier of the customer",
+       example = "customer-123")
+    val customerId: String,
+    // ...
+)
+```
+
+- `description` — what the field represents in domain terms.
+- `example` — a realistic, concrete value. Do not use placeholder strings like `"string"` or `"value"`.
+
+#### Accessing the documentation
+
+| Interface | URL (default port) |
+|---|---|
+| Swagger UI | `http://localhost:8080/swagger-ui.html` |
+| Raw OpenAPI JSON | `http://localhost:8080/v3/api-docs` |
+
+Both are publicly accessible (no authentication required). Configuration lives under the `springdoc` key in `application.yaml`.
+
+---
+
+### 10. Architecture Invariants (Hard Rules)
 
 These rules must not be violated without explicit discussion:
 
@@ -384,6 +450,7 @@ These rules must not be violated without explicit discussion:
 6. **One use case per class.** Application services are thin orchestrators with a single public method.
 7. **No business logic in controllers.** Controllers translate HTTP to application commands and back. Nothing more.
 8. **Keep `README.md` up to date.** Any change that affects API contracts, migration history, prerequisites, or configuration must be reflected in `README.md` in the same session it is made.
+    - **Keep OpenAPI documentation up to date.** Any new or modified endpoint must carry `@Tag`, `@Operation`, and `@ApiResponse` annotations. Any new or modified request/response class must carry `@Schema` annotations with descriptions and examples on every field. Undocumented endpoints are a violation of this rule.
 9. **Run tests after changing tested code.** Any change to a test class or to a component covered by tests must be followed by running `./gradlew test` in the same session. Tests must pass before the session ends.
 10. **Never use `data class` for JPA entities.** Use a regular class. See §8 JPA & Kotlin.
 11. **Entity classes are opened by the `allOpen` build config—do not remove it.** Removing it silently makes all entity classes final and breaks Hibernate proxy creation.

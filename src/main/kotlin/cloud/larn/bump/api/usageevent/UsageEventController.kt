@@ -7,6 +7,12 @@ import cloud.larn.bump.application.usecase.RecordUsageEventResult
 import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.IdempotencyKey
 import cloud.larn.bump.domain.model.UsageEvent
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,10 +23,29 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Usage Events", description = "Idempotent ingestion of raw usage events")
 @RestController
 @RequestMapping("/usage-events")
 class UsageEventController(private val useCase: RecordUsageEvent) {
 
+    @Operation(
+        summary = "Record a usage event",
+        description = "Records a usage event for a customer/tenant. Submitting the same `idempotencyKey` more than " +
+                "once returns 409 Conflict instead of recording a duplicate — safe to retry on network failure.")
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "201",
+            description = "Usage event recorded",
+            content = [Content(schema = Schema(implementation = UsageEventResponse::class))]),
+        ApiResponse(
+            responseCode = "400",
+            description = "Request is not valid",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+        ApiResponse(
+            responseCode = "409",
+            description = "Usage event with this idempotency key already exists",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+    )
     @PostMapping
     fun create(@Valid @RequestBody request: CreateUsageEventRequest): ResponseEntity<UsageEventResponse> {
         val command = RecordUsageEventCommand(

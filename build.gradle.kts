@@ -33,6 +33,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0")
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")

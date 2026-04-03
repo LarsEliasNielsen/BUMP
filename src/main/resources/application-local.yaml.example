@@ -4,3 +4,10 @@ spring:
   datasource:
     username: postgres
     password: your-password-here
+
+# Enables OpenAPI/Swagger UI as developer tool.
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

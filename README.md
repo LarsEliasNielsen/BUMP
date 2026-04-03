@@ -13,6 +13,7 @@ A backend service for tracking and metering usage events across users, services,
 | [PostgreSQL](https://www.postgresql.org/) | 18+ | Relational database |
 | [Flyway](https://flywaydb.org/) | 11+ | Database migrations |
 | [Java](https://openjdk.org/) | 24 | JVM runtime |
+| [springdoc-openapi](https://springdoc.org/) | 2.8+ | OpenAPI 3 spec + Swagger UI |
 
 ## Prerequisites
 
@@ -87,6 +88,17 @@ Flyway migrations are located in `src/main/resources/db/migration/` and run auto
 |---|---|
 | V1 | Create `usage_events` table |
 | V2 | Add `idempotency_key` column to `usage_events` |
+
+## API Documentation
+
+The application exposes an interactive OpenAPI 3 specification via Swagger UI. Start the application and open:
+
+| Interface | URL |
+|---|---|
+| Swagger UI | `http://localhost:8080/swagger-ui.html` |
+| Raw OpenAPI JSON | `http://localhost:8080/v3/api-docs` |
+
+Both endpoints are publicly accessible (no authentication required).
 
 ## API Endpoints
 
