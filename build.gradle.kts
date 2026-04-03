@@ -44,6 +44,16 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+// plugin.jpa adds no-arg constructors but does NOT open entity classes.
+// plugin.spring opens @Component/@Transactional etc. but not @Entity.
+// This allOpen block ensures Hibernate can create proxy subclasses for lazy loading and
+// transaction management. Without it, all entity classes are final and Hibernate cannot subclass them.
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")

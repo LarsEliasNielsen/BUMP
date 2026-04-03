@@ -341,7 +341,38 @@ sealed class UsageRecordResult {
 
 ---
 
-### 8. Architecture Invariants (Hard Rules)
+### 8. JPA & Kotlin
+
+JPA was designed for Java and conflicts directly with Kotlin's defaults of final classes and immutable fields. These rules exist to prevent silent runtime failures.
+
+#### Entity classes must be open
+Hibernate creates proxy subclasses for lazy loading and transaction management. Final classes cannot be subclassed—Hibernate will either fail at startup or fall back to suboptimal behaviour.
+
+- `plugin.jpa` adds no-arg constructors to `@Entity`, `@MappedSuperclass`, and `@Embeddable`—but it does **not** open them.
+- `plugin.spring` opens Spring-managed classes (`@Component`, `@Transactional`, etc.)—but it does **not** open `@Entity`.
+- The `allOpen` block in `build.gradle.kts` covers JPA annotations explicitly. Do not remove it.
+- Because `allOpen` handles this at compile time, entity classes do **not** need an explicit `open` keyword in source.
+
+#### Never use `data class` for entities
+`data class` generates `equals`/`hashCode` using all constructor properties. Managed entities must use identity-based equality (primary key only), or you risk broken Set/Map membership during the entity lifecycle. Use a regular class.
+
+#### Use `var` for entity fields
+Hibernate hydrates entities via the no-arg constructor followed by reflective field assignment. `val` fields can be set this way today, but JEP 500 will restrict final field modification through reflection. Use `var` for all entity fields as the safe default.
+
+#### Null safety and primary keys
+Kotlin's null safety is bypassed when Hibernate sets fields via reflection. Two distinct cases:
+
+- **Auto-generated primary keys** (`@GeneratedValue`): must be nullable (`Long?`, `UUID?`). Before the entity is persisted, the key is genuinely undefined; a non-nullable type is a lie.
+- **Domain-assigned primary keys** (our current pattern—UUID provided by the domain aggregate before `save()`): non-nullable is acceptable because the value is always set before JPA sees the entity. Document this assumption at the call site.
+
+Non-key fields: technically should be nullable because Hibernate bypasses Kotlin's type system. In practice, `nullable = false` constraints in the database enforce this at a stronger boundary. The current approach (non-nullable fields + DB constraints) is acceptable; the trade-off must be understood and not confused with genuine null-safety guarantees.
+
+#### Field access over property access
+Place JPA mapping annotations on fields, not on property getters. Field access is simpler and avoids edge cases with Kotlin's property accessor generation.
+
+---
+
+### 9. Architecture Invariants (Hard Rules)
 
 These rules must not be violated without explicit discussion:
 
@@ -354,3 +385,5 @@ These rules must not be violated without explicit discussion:
 7. **No business logic in controllers.** Controllers translate HTTP to application commands and back. Nothing more.
 8. **Keep `README.md` up to date.** Any change that affects API contracts, migration history, prerequisites, or configuration must be reflected in `README.md` in the same session it is made.
 9. **Run tests after changing tested code.** Any change to a test class or to a component covered by tests must be followed by running `./gradlew test` in the same session. Tests must pass before the session ends.
+10. **Never use `data class` for JPA entities.** Use a regular class. See §8 JPA & Kotlin.
+11. **Entity classes are opened by the `allOpen` build config—do not remove it.** Removing it silently makes all entity classes final and breaks Hibernate proxy creation.
