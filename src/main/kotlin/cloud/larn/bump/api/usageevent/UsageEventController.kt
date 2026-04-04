@@ -36,15 +36,15 @@ class UsageEventController(private val useCase: RecordUsageEvent) {
         ApiResponse(
             responseCode = "201",
             description = "Usage event recorded",
-            content = [Content(schema = Schema(implementation = UsageEventResponse::class))]),
+            content = [Content(mediaType = "application/json", schema = Schema(implementation = UsageEventResponse::class))]),
         ApiResponse(
             responseCode = "400",
             description = "Request is not valid",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+            content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(
             responseCode = "409",
             description = "Usage event with this idempotency key already exists",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+            content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]),
     )
     @PostMapping
     fun create(@Valid @RequestBody request: CreateUsageEventRequest): ResponseEntity<UsageEventResponse> {
@@ -76,3 +76,5 @@ class UsageEventController(private val useCase: RecordUsageEvent) {
         idempotencyKey = idempotencyKey.value,
     )
 }
+
+private class DuplicateUsageEventException : RuntimeException()

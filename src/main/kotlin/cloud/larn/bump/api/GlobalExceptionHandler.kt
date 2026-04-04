@@ -12,7 +12,14 @@ import java.time.format.DateTimeParseException
 class GlobalExceptionHandler {
 
     @Suppress("unused")
-    @ExceptionHandler(HttpMessageNotReadableException::class, MethodArgumentNotValidException::class, DateTimeParseException::class)
+    @ExceptionHandler(
+        HttpMessageNotReadableException::class,
+        MethodArgumentNotValidException::class,
+        DateTimeParseException::class,
+        // Domain value objects enforce invariants via require() which throws IllegalArgumentException.
+        // This handler ensures those violations surface as 400 rather than 500 when they reach the API boundary.
+        IllegalArgumentException::class,
+    )
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleInvalidRequest(): ErrorResponse =
         ErrorResponse(error = "Request is not valid")

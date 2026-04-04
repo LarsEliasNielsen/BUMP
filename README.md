@@ -88,6 +88,8 @@ Flyway migrations are located in `src/main/resources/db/migration/` and run auto
 |---|---|
 | V1 | Create `usage_events` table |
 | V2 | Add `idempotency_key` column to `usage_events` |
+| V3 | Create `tenants` table |
+| V4 | Create `users` table |
 
 ## API Documentation
 
@@ -102,38 +104,16 @@ Both endpoints are publicly accessible (no authentication required).
 
 ## API Endpoints
 
+Full request/response contracts are available in the Swagger UI. Short reference:
+
+**Accounts**
+
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/` | Welcome message |
-| `POST` | `/usage-events` | Submit a usage event |
+| `POST` | `/accounts` | Register a new tenant account |
 
-### POST /usage-events
+**Usage Events**
 
-Submits a usage event. Requests are idempotent — submitting the same `idempotencyKey` twice returns `409 Conflict` without creating a duplicate.
-
-**Request body:**
-
-```json
-{
-  "customerId": "customer-123",
-  "service": "compute",
-  "product": "vm-standard",
-  "eventDateTime": "2026-03-28T10:00:00Z",
-  "idempotencyKey": "a4f9b81c-1234-4c8f-9abc-2f3d5e6a7b8c"
-}
-```
-
-**Response** `201 Created`:
-
-```json
-{
-  "id": "e29b6e3a-1234-4c8f-9abc-2f3d5e6a7b8c",
-  "customerId": "customer-123",
-  "service": "compute",
-  "product": "vm-standard",
-  "eventDateTime": "2026-03-28T10:00:00Z",
-  "idempotencyKey": "a4f9b81c-1234-4c8f-9abc-2f3d5e6a7b8c"
-}
-```
-
-**Response** `409 Conflict` — returned when the `idempotencyKey` has already been used.
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/usage-events` | Submit a usage event (idempotent) |

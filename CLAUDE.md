@@ -449,8 +449,20 @@ These rules must not be violated without explicit discussion:
 5. **Events are immutable and past tense.** No mutable event fields. No imperative event names (`ProcessUsage` is a command, not an event).
 6. **One use case per class.** Application services are thin orchestrators with a single public method.
 7. **No business logic in controllers.** Controllers translate HTTP to application commands and back. Nothing more.
-8. **Keep `README.md` up to date.** Any change that affects API contracts, migration history, prerequisites, or configuration must be reflected in `README.md` in the same session it is made.
-    - **Keep OpenAPI documentation up to date.** Any new or modified endpoint must carry `@Tag`, `@Operation`, and `@ApiResponse` annotations. Any new or modified request/response class must carry `@Schema` annotations with descriptions and examples on every field. Undocumented endpoints are a violation of this rule.
-9. **Run tests after changing tested code.** Any change to a test class or to a component covered by tests must be followed by running `./gradlew test` in the same session. Tests must pass before the session ends.
-10. **Never use `data class` for JPA entities.** Use a regular class. See §8 JPA & Kotlin.
-11. **Entity classes are opened by the `allOpen` build config—do not remove it.** Removing it silently makes all entity classes final and breaks Hibernate proxy creation.
+8. **Never use `data class` for JPA entities.** Use a regular class. See §8 JPA & Kotlin.
+9. **Entity classes are opened by the `allOpen` build config—do not remove it.** Removing it silently makes all entity classes final and breaks Hibernate proxy creation.
+
+---
+
+### Before Ending Any Session
+
+A session is not complete until all three gates are passed. These are not optional:
+
+#### 1. Tests are green
+Run `./gradlew test`. Every test must pass before the session ends. A change that breaks tests is not done.
+
+#### 2. Internal documentation is updated (README.md)
+Any change that affects API contracts, migration history, prerequisites, or configuration must be reflected in `README.md` in the same session it is made.
+
+#### 3. API documentation is updated (OpenAPI)
+Every new or modified endpoint must carry `@Tag`, `@Operation`, and `@ApiResponse` for every status code it can return. Every new or modified request/response class must carry `@Schema` with `description` and `example` on every field. Undocumented endpoints are not shippable.

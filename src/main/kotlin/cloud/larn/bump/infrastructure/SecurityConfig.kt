@@ -3,7 +3,10 @@ package cloud.larn.bump.infrastructure
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
@@ -29,11 +32,13 @@ class SecurityConfig {
         http
             .securityMatcher("/**")     // Catch-all for requests not claimed by previous chain.
             .authorizeHttpRequests {
-                it.requestMatchers("/", "/usage-events")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated()
+                it.requestMatchers("/", "/usage-events").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/accounts").permitAll()
+                it.anyRequest().authenticated()
             }
             .csrf { it.disable() }
             .build()
+
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 }
