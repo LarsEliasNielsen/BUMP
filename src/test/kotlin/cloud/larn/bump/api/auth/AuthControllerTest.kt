@@ -11,6 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
@@ -25,6 +26,11 @@ class AuthControllerTest {
 
     @MockitoBean
     private lateinit var useCase: AuthenticateUser
+
+    // SecurityConfig wires an OAuth2 resource server that requires a JwtDecoder bean.
+    // POST /auth/login is public, so the decoder is never invoked — mocked to satisfy wiring only.
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Test
     fun `POST auth login returns 200 with token and Cache-Control no-store on valid credentials`() {

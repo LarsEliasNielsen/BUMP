@@ -4,7 +4,10 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtEncoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
 import java.util.Base64
 import javax.crypto.spec.SecretKeySpec
@@ -14,11 +17,20 @@ import javax.crypto.spec.SecretKeySpec
 class JwtConfig {
 
     @Bean
-    fun jwtEncoder(properties: JwtProperties): JwtEncoder {
-        // Secret is base64url-encoded; getUrlDecoder handles both padded and unpadded input.
+    fun jwtEncoder(properties: JwtProperties): JwtEncoder =
+        NimbusJwtEncoder(ImmutableSecret(secretKey(properties)))
+
+    @Bean
+    fun jwtDecoder(properties: JwtProperties): JwtDecoder =
+        NimbusJwtDecoder.withSecretKey(secretKey(properties))
+            .macAlgorithm(MacAlgorithm.HS256)
+            .build()
+
+    private fun secretKey(properties: JwtProperties): SecretKeySpec {
         val keyBytes = Base64.getUrlDecoder().decode(properties.secret)
-        require(keyBytes.size >= 32) { "JWT secret must be at least 256 bits (32 bytes) — generate one with: openssl rand -base64 32 | tr '+/' '-_' | tr -d '='" }
-        val key = SecretKeySpec(keyBytes, "HmacSHA256")
-        return NimbusJwtEncoder(ImmutableSecret(key))
+        require(keyBytes.size >= 32) {
+            "JWT secret must be at least 256 bits (32 bytes)"
+        }
+        return SecretKeySpec(keyBytes, "HmacSHA256")
     }
 }

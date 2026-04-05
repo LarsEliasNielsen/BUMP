@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
@@ -26,6 +27,11 @@ class AccountControllerTest {
 
     @MockitoBean
     private lateinit var useCase: RegisterTenant
+
+    // SecurityConfig wires an OAuth2 resource server that requires a JwtDecoder bean.
+    // POST /accounts is public, so the decoder is never invoked — mocked to satisfy wiring only.
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Test
     fun `POST accounts returns 201 with tenantId and adminUserId`() {

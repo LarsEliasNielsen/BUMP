@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
@@ -28,6 +30,12 @@ class UsageEventControllerTest {
 
     @MockitoBean
     private lateinit var useCase: RecordUsageEvent
+
+    // SecurityConfig wires an OAuth2 resource server that requires a JwtDecoder bean.
+    // The decoder is mocked here because these tests exercise controller logic, not JWT validation.
+    // JWT validation is covered by RouteProtectionTest.
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Test
     fun `POST usage-events returns 201 with response body`() {
@@ -50,6 +58,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"idempotency-key-123"}"""
+            with(jwt())
         }.andExpect {
             status { isCreated() }
             jsonPath("$.id") { value(id.toString()) }
@@ -67,6 +76,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"duplicate-key"}"""
+            with(jwt())
         }.andExpect {
             status { isConflict() }
             jsonPath("$.error") { value("Usage event with this idempotency key already exists") }
@@ -78,6 +88,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
+            with(jwt())
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -89,6 +100,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","service":"","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
+            with(jwt())
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -100,6 +112,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","service":"compute","product":"","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
+            with(jwt())
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -111,6 +124,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
+            with(jwt())
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -122,6 +136,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","service":"compute","product":"vm","idempotencyKey":"key-123"}"""
+            with(jwt())
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -133,6 +148,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","service":"compute","product":"vm","eventDateTime":"not-a-date","idempotencyKey":"key-123"}"""
+            with(jwt())
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -144,6 +160,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"customerId":"customer-123","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z"}"""
+            with(jwt())
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }

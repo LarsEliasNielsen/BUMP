@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -31,7 +32,9 @@ class UsageEventController(private val useCase: RecordUsageEvent) {
     @Operation(
         summary = "Record a usage event",
         description = "Records a usage event for a customer/tenant. Submitting the same `idempotencyKey` more than " +
-                "once returns 409 Conflict instead of recording a duplicate — safe to retry on network failure.")
+                "once returns 409 Conflict instead of recording a duplicate — safe to retry on network failure. " +
+                "Requires a valid JWT Bearer token.")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(
         ApiResponse(
             responseCode = "201",
@@ -41,6 +44,10 @@ class UsageEventController(private val useCase: RecordUsageEvent) {
             responseCode = "400",
             description = "Request is not valid",
             content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]),
+        ApiResponse(
+            responseCode = "401",
+            description = "Missing or invalid JWT Bearer token",
+            content = [Content(mediaType = "application/json")]),
         ApiResponse(
             responseCode = "409",
             description = "Usage event with this idempotency key already exists",
