@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -53,11 +54,16 @@ class UsageEventController(private val useCase: RecordUsageEvent) {
             description = "Missing or invalid JWT Bearer token",
             content = [Content(mediaType = "application/json")]),
         ApiResponse(
+            responseCode = "403",
+            description = "Authenticated user does not have the required role (DEVELOPER, ADMIN, or PLATFORM_ADMIN)",
+            content = [Content(mediaType = "application/json")]),
+        ApiResponse(
             responseCode = "409",
             description = "Usage event with this idempotency key already exists",
             content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]),
     )
     @PostMapping
+    @PreAuthorize("hasAnyRole('DEVELOPER', 'ADMIN', 'PLATFORM_ADMIN')")
     fun create(
         @Valid @RequestBody request: CreateUsageEventRequest,
         authentication: Authentication,

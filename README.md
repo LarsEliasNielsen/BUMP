@@ -96,6 +96,8 @@ Flyway migrations are located in `src/main/resources/db/migration/` and run auto
 | V2 | Add `idempotency_key` column to `usage_events` |
 | V3 | Create `tenants` table |
 | V4 | Create `users` table |
+| V5 | Retrofit `usage_events` for tenancy — drop free-text `user_id`, add `tenant_id` and `user_id` UUID FKs |
+| V6 | Add index on `usage_events(tenant_id)` |
 
 ## API Documentation
 
@@ -128,4 +130,4 @@ Full request/response contracts are available in the Swagger UI. Short reference
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/usage-events` | None (Story 3) | Submit a usage event (idempotent) |
+| `POST` | `/usage-events` | JWT Bearer — `DEVELOPER`, `ADMIN`, or `PLATFORM_ADMIN` | Submit a usage event (idempotent) |

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -39,6 +40,11 @@ class UsageEventControllerTest {
     // SecurityConfig wires an OAuth2 resource server that requires a JwtDecoder bean.
     // The decoder is mocked here because these tests exercise controller logic, not JWT validation.
     // JWT validation is covered by RouteProtectionTest.
+    //
+    // The jwt() post-processor bypasses BumpJwtAuthenticationConverter entirely, so the role claim
+    // is never converted to a ROLE_* authority. ROLE_ADMIN is set explicitly on every call to
+    // satisfy @PreAuthorize — if omitted, Spring Security rejects the request with 403 before
+    // reaching the controller. Role enforcement itself is covered by RbacTest.
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 
@@ -67,7 +73,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"idempotency-key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isCreated() }
             jsonPath("$.id") { value(id.toString()) }
@@ -98,7 +104,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isCreated() }
         }
@@ -114,7 +120,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()) /* no tenantId claim */ })
+            with(jwt().jwt { it.subject(userId.toString()) /* no tenantId claim */ }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Authentication token is missing required claims") }
@@ -128,7 +134,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"duplicate-key"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isConflict() }
             jsonPath("$.error") { value("Usage event with this idempotency key already exists") }
@@ -140,7 +146,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -152,7 +158,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -164,7 +170,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -176,7 +182,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"vm","idempotencyKey":"key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -188,7 +194,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"vm","eventDateTime":"not-a-date","idempotencyKey":"key-123"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
@@ -200,7 +206,7 @@ class UsageEventControllerTest {
         mockMvc.post("/usage-events") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z"}"""
-            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) })
+            with(jwt().jwt { it.subject(userId.toString()).claim("tenantId", tenantId.toString()) }.authorities(SimpleGrantedAuthority("ROLE_ADMIN")))
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.error") { value("Request is not valid") }
