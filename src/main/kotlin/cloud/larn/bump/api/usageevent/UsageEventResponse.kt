@@ -16,10 +16,17 @@ data class UsageEventResponse(
         example = "e29b6e3a-1234-4c8f-9abc-2f3d5e6a7b8c")
     val id: UUID,
 
+    @Serializable(with = UUIDSerializer::class)
     @Schema(
-        description = "Identifier of the customer being billed for this usage",
-        example = "customer-123")
-    val customerId: String,
+        description = "Identifier of the tenant that owns this usage event",
+        example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+    val tenantId: UUID,
+
+    @Serializable(with = UUIDSerializer::class)
+    @Schema(
+        description = "Identifier of the user who recorded this usage event",
+        example = "f9e8d7c6-b5a4-3210-fedc-ba9876543210")
+    val userId: UUID,
 
     @Schema(
         description = "The service being billed for this usage",

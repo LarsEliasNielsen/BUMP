@@ -3,9 +3,10 @@ package cloud.larn.bump.application.usecase
 import cloud.larn.bump.application.port.DomainEventPublisher
 import cloud.larn.bump.domain.event.UsageRecorded
 import cloud.larn.bump.domain.exception.DuplicateIdempotencyKeyException
-import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.IdempotencyKey
+import cloud.larn.bump.domain.model.TenantId
 import cloud.larn.bump.domain.model.UsageEvent
+import cloud.larn.bump.domain.model.UserId
 import cloud.larn.bump.domain.repository.UsageEventRepository
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -25,8 +26,12 @@ class RecordUsageEventTest {
     private val eventPublisher: DomainEventPublisher = mock()
     private val useCase = RecordUsageEvent(repository, eventPublisher)
 
+    private val tenantId = TenantId(UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+    private val userId = UserId(UUID.fromString("11111111-2222-3333-4444-555555555555"))
+
     private val command = RecordUsageEventCommand(
-        customerId = CustomerId("customer-123"),
+        tenantId = tenantId,
+        userId = userId,
         service = "compute",
         product = "vm",
         eventDateTime = OffsetDateTime.parse("2026-01-15T10:00:00Z"),
@@ -37,7 +42,8 @@ class RecordUsageEventTest {
     fun `should return Recorded and publish UsageRecorded event when idempotency key is new`() {
         val savedEvent = UsageEvent(
             id = UUID.randomUUID(),
-            customerId = command.customerId,
+            tenantId = command.tenantId,
+            userId = command.userId,
             service = command.service,
             product = command.product,
             eventDateTime = command.eventDateTime,
@@ -56,7 +62,8 @@ class RecordUsageEventTest {
     fun `should publish UsageRecorded event with correct fields after saving`() {
         val savedEvent = UsageEvent(
             id = UUID.randomUUID(),
-            customerId = command.customerId,
+            tenantId = command.tenantId,
+            userId = command.userId,
             service = command.service,
             product = command.product,
             eventDateTime = command.eventDateTime,
@@ -71,11 +78,24 @@ class RecordUsageEventTest {
         verify(eventPublisher).publish(captor.capture())
         val publishedEvent = captor.firstValue
         assertEquals(savedEvent.id, publishedEvent.usageEventId)
-        assertEquals(savedEvent.customerId, publishedEvent.customerId)
+        assertEquals(savedEvent.tenantId, publishedEvent.tenantId)
+        assertEquals(savedEvent.userId, publishedEvent.userId)
         assertEquals(savedEvent.service, publishedEvent.service)
         assertEquals(savedEvent.product, publishedEvent.product)
         assertEquals(savedEvent.idempotencyKey, publishedEvent.idempotencyKey)
         assertEquals(savedEvent.eventDateTime.toInstant(), publishedEvent.occurredAt)
+    }
+
+    @Test
+    fun `should pass tenantId and userId from command to the saved UsageEvent`() {
+        given(repository.existsByIdempotencyKey(command.idempotencyKey)).willReturn(false)
+        given(repository.save(any())).willAnswer { invocation -> invocation.getArgument(0) as UsageEvent }
+
+        val result = useCase.execute(command)
+
+        assertIs<RecordUsageEventResult.Recorded>(result)
+        assertEquals(tenantId, result.event.tenantId)
+        assertEquals(userId, result.event.userId)
     }
 
     @Test

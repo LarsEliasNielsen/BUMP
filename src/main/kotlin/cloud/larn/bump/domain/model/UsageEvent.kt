@@ -5,7 +5,8 @@ import java.util.UUID
 
 class UsageEvent(
     val id: UUID = UUID.randomUUID(),
-    val customerId: CustomerId,
+    val tenantId: TenantId,
+    val userId: UserId,
     val service: String,
     val product: String,
     val eventDateTime: OffsetDateTime,

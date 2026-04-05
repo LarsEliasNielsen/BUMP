@@ -14,8 +14,11 @@ class UsageEventEntity(
     @Column(name = "id", updatable = false, nullable = false)
     var id: UUID,
 
-    @Column(name = "user_id", nullable = false)
-    var userId: String,
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    var tenantId: UUID,
+
+    @Column(name = "user_id", nullable = false, updatable = false)
+    var userId: UUID,
 
     @Column(name = "service", nullable = false)
     var service: String,

@@ -21,7 +21,8 @@ class RecordUsageEvent(
         val event = try {
             repository.save(
                 UsageEvent(
-                    customerId = command.customerId,
+                    tenantId = command.tenantId,
+                    userId = command.userId,
                     service = command.service,
                     product = command.product,
                     eventDateTime = command.eventDateTime,
@@ -35,7 +36,8 @@ class RecordUsageEvent(
         eventPublisher.publish(
             UsageRecorded(
                 usageEventId = event.id,
-                customerId = event.customerId,
+                tenantId = event.tenantId,
+                userId = event.userId,
                 service = event.service,
                 product = event.product,
                 idempotencyKey = event.idempotencyKey,

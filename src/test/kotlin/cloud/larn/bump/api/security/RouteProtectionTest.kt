@@ -3,9 +3,10 @@ package cloud.larn.bump.api.security
 import cloud.larn.bump.api.usageevent.UsageEventController
 import cloud.larn.bump.application.usecase.RecordUsageEvent
 import cloud.larn.bump.application.usecase.RecordUsageEventResult
-import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.IdempotencyKey
+import cloud.larn.bump.domain.model.TenantId
 import cloud.larn.bump.domain.model.UsageEvent
+import cloud.larn.bump.domain.model.UserId
 import cloud.larn.bump.infrastructure.SecurityConfig
 import cloud.larn.bump.infrastructure.security.JwtConfig
 import com.nimbusds.jose.jwk.source.ImmutableSecret
@@ -61,7 +62,8 @@ class RouteProtectionTest {
             RecordUsageEventResult.Recorded(
                 UsageEvent(
                     id = id,
-                    customerId = CustomerId("customer-123"),
+                    tenantId = TenantId(UUID.randomUUID()),
+                    userId = UserId(UUID.randomUUID()),
                     service = "compute",
                     product = "vm",
                     eventDateTime = OffsetDateTime.parse("2026-01-15T10:00:00Z"),
@@ -159,5 +161,5 @@ class RouteProtectionTest {
     }
 
     private fun validUsageEventBody() =
-        """{"customerId":"customer-123","service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
+        """{"service":"compute","product":"vm","eventDateTime":"2026-01-15T10:00:00Z","idempotencyKey":"key-123"}"""
 }

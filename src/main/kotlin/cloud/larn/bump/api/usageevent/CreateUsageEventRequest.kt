@@ -12,12 +12,6 @@ import java.time.OffsetDateTime
 data class CreateUsageEventRequest(
     @field:NotBlank
     @Schema(
-        description = "Identifier of the customer being billed for this usage",
-        example = "customer-123")
-    val customerId: String,
-
-    @field:NotBlank
-    @Schema(
         description = "The service being billed for this usage (e.g. storage, compute)",
         example = "compute")
     val service: String,

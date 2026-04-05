@@ -1,9 +1,10 @@
 package cloud.larn.bump.infrastructure.persistence
 
 import cloud.larn.bump.domain.exception.DuplicateIdempotencyKeyException
-import cloud.larn.bump.domain.model.CustomerId
 import cloud.larn.bump.domain.model.IdempotencyKey
+import cloud.larn.bump.domain.model.TenantId
 import cloud.larn.bump.domain.model.UsageEvent
+import cloud.larn.bump.domain.model.UserId
 import cloud.larn.bump.domain.repository.UsageEventRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository
@@ -29,7 +30,8 @@ class UsageEventRepositoryAdapter(
 
     private fun UsageEvent.toEntity() = UsageEventEntity(
         id = id,
-        userId = customerId.value,
+        tenantId = tenantId.value,
+        userId = userId.value,
         service = service,
         product = product,
         eventDateTime = eventDateTime,
@@ -38,7 +40,8 @@ class UsageEventRepositoryAdapter(
 
     private fun UsageEventEntity.toDomain() = UsageEvent(
         id = id,
-        customerId = CustomerId(userId),
+        tenantId = TenantId(tenantId),
+        userId = UserId(userId),
         service = service,
         product = product,
         eventDateTime = eventDateTime,
