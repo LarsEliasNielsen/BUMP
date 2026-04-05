@@ -1,5 +1,6 @@
 package cloud.larn.bump.api.usageevent
 
+import cloud.larn.bump.TestcontainersConfig
 import cloud.larn.bump.infrastructure.persistence.TenantJpaRepository
 import cloud.larn.bump.infrastructure.persistence.UserJpaRepository
 import cloud.larn.bump.infrastructure.persistence.UsageEventJpaRepository
@@ -7,15 +8,15 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm
 import org.springframework.security.oauth2.jwt.JwsHeader
 import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtEncoder
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 import java.time.Instant
@@ -24,7 +25,7 @@ import kotlin.test.assertEquals
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("local")
+@Import(TestcontainersConfig::class)
 class UsageEventTenancyTest {
 
     @Autowired

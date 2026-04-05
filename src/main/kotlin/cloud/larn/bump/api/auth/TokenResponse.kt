@@ -13,6 +13,6 @@ data class TokenResponse(
 
     @Schema(
         description = "ISO-8601 timestamp at which the token expires",
-        example = "2025-04-06T12:00:00Z")
+        example = "2026-05-01T12:00:00Z")
     val expiresAt: String,
 )

@@ -14,11 +14,13 @@ A backend service for tracking and metering usage events across users, services,
 | [Flyway](https://flywaydb.org/) | 11+ | Database migrations |
 | [Java](https://openjdk.org/) | 24 | JVM runtime |
 | [springdoc-openapi](https://springdoc.org/) | 2.8+ | OpenAPI 3 spec + Swagger UI |
+| [Testcontainers](https://testcontainers.com/) | 1.20+ | Disposable PostgreSQL containers for integration tests |
 
 ## Prerequisites
 
 - JDK 24
 - PostgreSQL running on `localhost:5432` with a database named `bump`
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — required to run the test suite (Testcontainers spins up a disposable PostgreSQL container so tests never touch the `bump` database)
 
 ## Configuration
 
@@ -38,6 +40,7 @@ Credentials are kept out of version control using a local override file:
      security:
        jwt:
          secret: <base64url-encoded HMAC-SHA256 signing key>
+         expiration-hours: 24   # optional — defaults to 24
    ```
 
 `application-local.yaml` is gitignored and will never be committed. The datasource URL defaults to `jdbc:postgresql://localhost:5432/bump` and can also be overridden in the local file if needed.
@@ -98,6 +101,35 @@ Flyway migrations are located in `src/main/resources/db/migration/` and run auto
 | V4 | Create `users` table |
 | V5 | Retrofit `usage_events` for tenancy — drop free-text `user_id`, add `tenant_id` and `user_id` UUID FKs |
 | V6 | Add index on `usage_events(tenant_id)` |
+
+## Authentication & Authorization
+
+BUMP uses JWT Bearer tokens (HMAC-SHA256) for authentication. The flow is:
+
+1. **Register** a tenant account via `POST /accounts` — returns a `tenantId` and `adminUserId`
+2. **Log in** via `POST /auth/login` — returns a signed JWT
+3. **Include the token** as `Authorization: Bearer <token>` on all protected requests
+
+### JWT Claims
+
+| Claim | Type | Description |
+|---|---|---|
+| `sub` | UUID string | User ID of the authenticated user |
+| `tenantId` | UUID string | Tenant the user belongs to — set server-side, cannot be supplied by the caller |
+| `role` | string | The user's role (see below) |
+| `exp` | epoch seconds | Token expiry — default 24 hours, configurable via `bump.security.jwt.expiration-hours` |
+| `jti` | UUID string | Unique token ID |
+
+### Roles
+
+| Role | Assigned by | Permissions (Phase 1) |
+|---|---|---|
+| `DEVELOPER` | Future: user management API | Submit usage events |
+| `MANAGER` | Future: user management API | No write access in Phase 1 — reserved for billing/reporting features |
+| `ADMIN` | Automatically on `POST /accounts` | Submit usage events; extended permissions in future epics |
+| `PLATFORM_ADMIN` | Seeded at startup | Full access across all tenants |
+
+> **Note:** `POST /accounts` always creates the first user with role `ADMIN`. Creating additional users and assigning roles will be introduced in Epic 2 (Customer & Subscription Management).
 
 ## API Documentation
 
