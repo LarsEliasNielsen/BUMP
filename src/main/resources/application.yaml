@@ -15,6 +15,14 @@ spring:
   flyway:
     enabled: true
 
+bump:
+  security:
+    jwt:
+      # base64url-encoded HMAC-SHA256 signing key (min 32 bytes / 256 bits).
+      # Generate with: openssl rand -base64 32 | tr '+/' '-_' | tr -d '='
+      secret: ${BUMP_JWT_SECRET}
+      expiration-hours: 24
+
 springdoc:
   api-docs:
     path: /v3/api-docs

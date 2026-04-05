@@ -8,4 +8,6 @@ import org.springframework.stereotype.Component
 class BCryptPasswordHasher(private val encoder: PasswordEncoder) : PasswordHasher {
     override fun hash(plainText: String): String = encoder.encode(plainText)
         ?: error("BCryptPasswordEncoder returned null for non-null input")
+
+    override fun verify(plainText: String, hash: String): Boolean = encoder.matches(plainText, hash)
 }

@@ -33,7 +33,7 @@ class SecurityConfig {
             .securityMatcher("/**")     // Catch-all for requests not claimed by previous chain.
             .authorizeHttpRequests {
                 it.requestMatchers("/", "/usage-events").permitAll()
-                it.requestMatchers(HttpMethod.POST, "/accounts").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/accounts", "/auth/login").permitAll()
                 it.anyRequest().authenticated()
             }
             .csrf { it.disable() }

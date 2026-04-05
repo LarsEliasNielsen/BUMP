@@ -28,15 +28,21 @@ Credentials are kept out of version control using a local override file:
    ```bash
    cp src/main/resources/application-local.yaml.example src/main/resources/application-local.yaml
    ```
-2. Fill in your database credentials in `application-local.yaml`:
+2. Fill in your database credentials and JWT secret in `application-local.yaml`:
    ```yaml
    spring:
      datasource:
        username: postgres
        password: your-password-here
+   bump:
+     security:
+       jwt:
+         secret: <base64url-encoded HMAC-SHA256 signing key>
    ```
 
 `application-local.yaml` is gitignored and will never be committed. The datasource URL defaults to `jdbc:postgresql://localhost:5432/bump` and can also be overridden in the local file if needed.
+
+**Production:** the application reads `BUMP_JWT_SECRET` from the environment at startup and will refuse to start if the decoded value is shorter than 32 bytes. The value must be a base64url-encoded, cryptographically random 256-bit key — generated locally with `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='` or sourced from a secrets manager (AWS Secrets Manager, HashiCorp Vault, etc.).
 
 ## Gradle Commands
 
@@ -108,12 +114,18 @@ Full request/response contracts are available in the Swagger UI. Short reference
 
 **Accounts**
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/accounts` | Register a new tenant account |
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/accounts` | None | Register a new tenant account |
+
+**Authentication**
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/auth/login` | None | Authenticate and receive a JWT token |
 
 **Usage Events**
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/usage-events` | Submit a usage event (idempotent) |
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/usage-events` | None (Story 3) | Submit a usage event (idempotent) |
